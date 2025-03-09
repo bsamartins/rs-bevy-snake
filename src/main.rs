@@ -1,5 +1,12 @@
 use bevy::prelude::*;
 
 fn main() {
-    App::new().run();
+    App::new()
+        .add_systems(Startup, setup_camera)
+        .add_plugins(DefaultPlugins)
+        .run();
+}
+
+fn setup_camera(mut commands: Commands) {
+    commands.spawn_batch(vec![Camera2d::default()]);
 }
