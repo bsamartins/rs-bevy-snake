@@ -3,7 +3,7 @@ use bevy::window::PrimaryWindow;
 use rand::random;
 use crate::food::{food_spawner, FoodTimer, should_spawn_food, update_food_timer};
 
-use crate::snake::{should_move_snake, snake_movement, snake_movement_input, SnakeTimer, spawn_snake, update_snake_timer};
+use crate::snake::{should_move_snake, snake_movement, snake_movement_input, SnakeSegments, SnakeTimer, spawn_snake, update_snake_timer};
 
 mod snake;
 mod food;
@@ -15,6 +15,7 @@ fn main() {
     App::new()
         .insert_resource(FoodTimer::new())
         .insert_resource(SnakeTimer::new())
+        .insert_resource(SnakeSegments::default())
         .add_systems(FixedUpdate, update_snake_timer)
         .add_systems(FixedUpdate, update_food_timer)
         .add_systems(PreStartup, initialize_window)

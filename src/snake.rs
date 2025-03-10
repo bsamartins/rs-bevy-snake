@@ -1,11 +1,12 @@
 use bevy::color::Color;
 use bevy::input::ButtonInput;
 use bevy::math::Vec2;
-use bevy::prelude::{Commands, Component, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
+use bevy::prelude::{Commands, Component, Entity, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
 use crate::{Position, Size};
 
 const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
+const SNAKE_SEGMENT_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
 
 #[derive(Resource)]
 pub struct SnakeTimer(Timer);
@@ -14,6 +15,12 @@ pub struct SnakeTimer(Timer);
 pub struct SnakeHead {
     direction: Direction,
 }
+
+#[derive(Component)]
+struct SnakeSegment;
+
+#[derive(Default, Resource)]
+pub struct SnakeSegments(Vec<Entity>);
 
 #[derive(PartialEq, Copy, Clone)]
 enum Direction {
@@ -34,13 +41,29 @@ impl Direction {
     }
 }
 
-pub fn spawn_snake(mut commands: Commands) {
-    commands.spawn(
-        Sprite::from_color(SNAKE_HEAD_COLOR, Vec2::new(1.0, 1.0)),
-    ).insert(SnakeHead {
-        direction: Direction::Up
-    }).insert(Position { x: 3, y: 3 })
-        .insert(Size::square(0.8));
+pub fn spawn_snake(mut commands: Commands, mut segments: ResMut<SnakeSegments>) {
+    *segments = SnakeSegments(
+        vec![
+            commands.spawn(
+                Sprite::from_color(SNAKE_HEAD_COLOR, Vec2::new(1.0, 1.0)),
+            ).insert(SnakeHead {
+                direction: Direction::Up
+            }).insert(Position { x: 3, y: 3 })
+                .insert(SnakeSegment)
+                .insert(Size::square(0.8))
+                .id(),
+            spawn_segment(commands, Position { x: 3, y: 2 }),
+        ]
+    );
+}
+
+fn spawn_segment(mut commands: Commands, position: Position) -> Entity {
+    commands
+        .spawn(Sprite::from_color(SNAKE_SEGMENT_COLOR, Vec2::new(1.0, 1.0)))
+        .insert(SnakeSegment)
+        .insert(position)
+        .insert(Size::square(0.65))
+        .id()
 }
 
 pub fn snake_movement_input(keyboard_input: Res<ButtonInput<KeyCode>>, mut heads: Query<&mut SnakeHead>) {
@@ -63,9 +86,16 @@ pub fn snake_movement_input(keyboard_input: Res<ButtonInput<KeyCode>>, mut heads
 }
 
 pub fn snake_movement(
-    mut head_positions: Query<(&mut Position, &SnakeHead)>,
+    segments: ResMut<SnakeSegments>,
+    mut heads: Query<(Entity, &SnakeHead)>,
+    mut positions: Query<&mut Position>,
 ) {
-    if let Some((mut head_pos, head)) = head_positions.iter_mut().next() {
+    if let Some((head_entity, head)) = heads.iter_mut().next() {
+        let segment_positions = segments.0
+            .iter()
+            .map(|e| *positions.get_mut(*e).unwrap())
+            .collect::<Vec<Position>>();
+        let mut head_pos = positions.get_mut(head_entity).unwrap();
         match &head.direction {
             Direction::Left => {
                 head_pos.x -= 1;
@@ -80,6 +110,12 @@ pub fn snake_movement(
                 head_pos.y -= 1;
             }
         };
+        segment_positions
+            .iter()
+            .zip(segments.0.iter().skip(1))
+            .for_each(|(pos, segment)| {
+                *positions.get_mut(*segment).unwrap() = *pos;
+            });
     }
 }
 
