@@ -1,6 +1,5 @@
 use bevy::color::Color;
 use bevy::input::ButtonInput;
-use bevy::log::info;
 use bevy::math::Vec2;
 use bevy::prelude::{Commands, Component, Entity, Event, EventReader, EventWriter, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
@@ -101,7 +100,6 @@ pub fn snake_movement(
     mut last_tail_position: ResMut<LastTailPosition>,
 ) {
     if let Some((head_entity, head)) = heads.iter_mut().next() {
-        info!("head direction: {:?}", head.direction);
         let segment_positions = segments.0
             .iter()
             .map(|e| *positions.get_mut(*e).unwrap())

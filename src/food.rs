@@ -1,6 +1,6 @@
 use bevy::color::Color;
 use bevy::math::Vec2;
-use bevy::prelude::{Commands, Component, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode};
+use bevy::prelude::{Commands, Component, Query, Sprite};
 use rand::random;
 
 use crate::{ARENA_HEIGHT, ARENA_WIDTH, Position, Size};
@@ -24,27 +24,12 @@ pub fn spawn_food(mut commands: Commands) {
 }
 
 pub fn should_spawn_food(
-    food_time: Res<FoodTimer>,
+    food: Query<&Food>
 ) -> bool {
-    if food_time.0.finished() {
+    let food_exists = food.iter().peekable().peek().is_some();
+    if !food_exists {
         true
     } else {
         false
-    }
-}
-
-pub fn update_food_timer(
-    time: Res<Time>,
-    mut food_time: ResMut<FoodTimer>,
-) {
-    food_time.0.tick(time.delta());
-}
-
-#[derive(Resource)]
-pub struct FoodTimer(Timer);
-
-impl FoodTimer {
-    pub fn new() -> Self {
-        Self(Timer::from_seconds(10.0, TimerMode::Repeating))
     }
 }
