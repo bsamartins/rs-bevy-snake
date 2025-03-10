@@ -1,13 +1,32 @@
+use bevy::app::{App, FixedUpdate, Startup, Update};
 use bevy::color::Color;
 use bevy::input::ButtonInput;
 use bevy::math::Vec2;
-use bevy::prelude::{Commands, Component, Entity, Event, EventReader, EventWriter, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
+use bevy::prelude::{Commands, Component, Entity, Event, EventReader, EventWriter, IntoSystemConfigs, KeyCode, Plugin, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
-use crate::{ARENA_HEIGHT, ARENA_WIDTH, GameOverEvent, Position, Size};
 use crate::food::Food;
+use crate::{GameOverEvent, Position, Size, ARENA_HEIGHT, ARENA_WIDTH};
 
 const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
 const SNAKE_SEGMENT_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
+
+pub struct SnakePlugin;
+
+impl Plugin for SnakePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_event::<GrowthEvent>()
+            .insert_resource(SnakeTimer::new())
+            .insert_resource(SnakeSegments::default())
+            .insert_resource(LastTailPosition::default())
+            .add_systems(FixedUpdate, update_snake_timer)
+            .add_systems(FixedUpdate, snake_movement.run_if(should_move_snake))
+            .add_systems(Startup, spawn_snake)
+            .add_systems(Update, snake_eating.after(snake_movement))
+            .add_systems(Update, snake_movement_input.before(snake_movement))
+            .add_systems(Update, snake_growth.after(snake_eating))
+        ;
+    }
+}
 
 #[derive(Resource)]
 pub struct SnakeTimer(Timer);

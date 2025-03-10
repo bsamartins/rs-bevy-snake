@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::food::{Food, should_spawn_food, spawn_food};
-use crate::snake::{GrowthEvent, LastTailPosition, should_move_snake, snake_eating, snake_growth, snake_movement, snake_movement_input, SnakeSegment, SnakeSegments, SnakeTimer, spawn_snake, update_snake_timer};
+use crate::food::{should_spawn_food, spawn_food, Food};
+use crate::snake::{snake_movement, spawn_snake, SnakePlugin, SnakeSegment, SnakeSegments};
 
 mod snake;
 mod food;
@@ -12,24 +12,15 @@ const ARENA_HEIGHT: u32 = 10;
 
 fn main() {
     App::new()
-        .add_event::<GrowthEvent>()
         .add_event::<GameOverEvent>()
-        .insert_resource(SnakeTimer::new())
-        .insert_resource(SnakeSegments::default())
-        .insert_resource(LastTailPosition::default())
-        .add_systems(FixedUpdate, update_snake_timer)
-        .add_systems(FixedUpdate, snake_movement.run_if(should_move_snake))
         .add_systems(PreStartup, initialize_window)
         .add_systems(Startup, setup_camera)
-        .add_systems(Startup, spawn_snake)
         .add_systems(Startup, spawn_food)
         .add_systems(Update, spawn_food.run_if(should_spawn_food))
-        .add_systems(Update, snake_eating.after(snake_movement))
-        .add_systems(Update, snake_movement_input.before(snake_movement))
-        .add_systems(Update, snake_growth.after(snake_eating))
         .add_systems(Update, game_over.after(snake_movement))
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .add_plugins(DefaultPlugins)
+        .add_plugins(SnakePlugin)
         .run();
 }
 
