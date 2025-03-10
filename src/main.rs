@@ -3,7 +3,7 @@ use bevy::window::PrimaryWindow;
 use rand::random;
 use crate::food::{food_spawner, FoodTimer, should_spawn_food, update_food_timer};
 
-use crate::snake::{snake_movement, spawn_snake};
+use crate::snake::{should_move_snake, snake_movement, snake_movement_input, SnakeTimer, spawn_snake, update_snake_timer};
 
 mod snake;
 mod food;
@@ -16,11 +16,14 @@ const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
 fn main() {
     App::new()
         .insert_resource(FoodTimer::new())
+        .insert_resource(SnakeTimer::new())
+        .add_systems(FixedUpdate, update_snake_timer)
         .add_systems(FixedUpdate, update_food_timer)
         .add_systems(PreStartup, initialize_window)
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
-        .add_systems(Update, snake_movement)
+        .add_systems(Update, snake_movement_input.before(snake_movement))
+        .add_systems(FixedUpdate, snake_movement.run_if(should_move_snake))
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .add_systems(Update, food_spawner.run_if(should_spawn_food))
         .add_plugins(DefaultPlugins)
