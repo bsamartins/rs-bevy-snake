@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::food::{should_spawn_food, spawn_food, Food};
+use crate::food::{Food, FoodPlugin};
 use crate::snake::{snake_movement, spawn_snake, SnakePlugin, SnakeSegment, SnakeSegments};
 
 mod snake;
@@ -15,12 +15,11 @@ fn main() {
         .add_event::<GameOverEvent>()
         .add_systems(PreStartup, initialize_window)
         .add_systems(Startup, setup_camera)
-        .add_systems(Startup, spawn_food)
-        .add_systems(Update, spawn_food.run_if(should_spawn_food))
         .add_systems(Update, game_over.after(snake_movement))
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .add_plugins(DefaultPlugins)
         .add_plugins(SnakePlugin)
+        .add_plugins(FoodPlugin)
         .run();
 }
 
