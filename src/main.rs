@@ -55,7 +55,6 @@ fn size_scaling(window_query: Query<&Window, With<PrimaryWindow>>, mut q: Query<
     for (sprite_size, mut transform) in q.iter_mut() {
         let x = sprite_size.width / ARENA_WIDTH as f32 * window.width();
         let y = sprite_size.height / ARENA_HEIGHT as f32 * window.height();
-        debug!("{x}x{y}, {}x{}", window.width(), window.height());
         transform.scale = Vec3::new(
             x,
             y,
