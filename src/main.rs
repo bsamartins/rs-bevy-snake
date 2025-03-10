@@ -10,8 +10,6 @@ mod food;
 
 const ARENA_WIDTH: u32 = 10;
 const ARENA_HEIGHT: u32 = 10;
-const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
-const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
 
 fn main() {
     App::new()

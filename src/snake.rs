@@ -1,8 +1,11 @@
+use bevy::color::Color;
 use bevy::input::ButtonInput;
 use bevy::math::Vec2;
 use bevy::prelude::{Commands, Component, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
-use crate::{Position, Size, SNAKE_HEAD_COLOR};
+use crate::{Position, Size};
+
+const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
 
 #[derive(Resource)]
 pub struct SnakeTimer(Timer);
@@ -99,6 +102,6 @@ pub fn update_snake_timer(
 
 impl SnakeTimer {
     pub fn new() -> Self {
-        Self(Timer::from_seconds(0.150, TimerMode::Repeating))
+        Self(Timer::from_seconds(0.500, TimerMode::Repeating))
     }
 }

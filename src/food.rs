@@ -1,7 +1,11 @@
+use bevy::color::Color;
 use bevy::math::Vec2;
 use bevy::prelude::{Commands, Component, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode};
 use rand::random;
-use crate::{ARENA_HEIGHT, ARENA_WIDTH, FOOD_COLOR, Position, Size};
+
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, Position, Size};
+
+const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
 
 #[derive(Component)]
 pub struct Food;
