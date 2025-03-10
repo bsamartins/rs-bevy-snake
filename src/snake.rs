@@ -1,9 +1,11 @@
 use bevy::color::Color;
 use bevy::input::ButtonInput;
+use bevy::log::info;
 use bevy::math::Vec2;
-use bevy::prelude::{Commands, Component, Entity, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
+use bevy::prelude::{Commands, Component, Entity, Event, EventReader, EventWriter, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
 use crate::{Position, Size};
+use crate::food::Food;
 
 const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
 const SNAKE_SEGMENT_COLOR: Color = Color::srgb(0.3, 0.3, 0.3);
@@ -16,19 +18,25 @@ pub struct SnakeHead {
     direction: Direction,
 }
 
+#[derive(Default, Resource)]
+pub struct LastTailPosition(Option<Position>);
+
 #[derive(Component)]
 struct SnakeSegment;
 
 #[derive(Default, Resource)]
 pub struct SnakeSegments(Vec<Entity>);
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(PartialEq, Copy, Clone, Debug)]
 enum Direction {
     Left,
     Up,
     Right,
     Down,
 }
+
+#[derive(Event)]
+pub struct GrowthEvent;
 
 impl Direction {
     fn opposite(self) -> Self {
@@ -89,12 +97,15 @@ pub fn snake_movement(
     segments: ResMut<SnakeSegments>,
     mut heads: Query<(Entity, &SnakeHead)>,
     mut positions: Query<&mut Position>,
+    mut last_tail_position: ResMut<LastTailPosition>,
 ) {
     if let Some((head_entity, head)) = heads.iter_mut().next() {
+        info!("head direction: {:?}", head.direction);
         let segment_positions = segments.0
             .iter()
             .map(|e| *positions.get_mut(*e).unwrap())
             .collect::<Vec<Position>>();
+        *last_tail_position = LastTailPosition(Some(*segment_positions.last().unwrap()));
         let mut head_pos = positions.get_mut(head_entity).unwrap();
         match &head.direction {
             Direction::Left => {
@@ -141,3 +152,31 @@ impl SnakeTimer {
         Self(Timer::from_seconds(0.500, TimerMode::Repeating))
     }
 }
+
+pub fn snake_eating(
+    mut commands: Commands,
+    mut growth_writer: EventWriter<GrowthEvent>,
+    food_positions: Query<(Entity, &Position), With<Food>>,
+    head_positions: Query<&Position, With<SnakeHead>>,
+) {
+    for head_pos in head_positions.iter() {
+        for (ent, food_pos) in food_positions.iter() {
+            if food_pos == head_pos {
+                commands.entity(ent).despawn();
+                growth_writer.send(GrowthEvent);
+            }
+        }
+    }
+}
+
+pub fn snake_growth(
+    commands: Commands,
+    last_tail_position: Res<LastTailPosition>,
+    mut segments: ResMut<SnakeSegments>,
+    mut growth_reader: EventReader<GrowthEvent>,
+) {
+    if growth_reader.read().next().is_some() {
+        segments.0.push(spawn_segment(commands, last_tail_position.0.unwrap()));
+    }
+}
+
