@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::food::{food_spawner, FoodTimer, should_spawn_food, update_food_timer};
-use crate::snake::{GrowthEvent, LastTailPosition, should_move_snake, snake_eating, snake_growth, snake_movement, snake_movement_input, SnakeSegments, SnakeTimer, spawn_snake, update_snake_timer};
+use crate::food::{Food, food_spawner, FoodTimer, should_spawn_food, update_food_timer};
+use crate::snake::{GrowthEvent, LastTailPosition, should_move_snake, snake_eating, snake_growth, snake_movement, snake_movement_input, SnakeSegment, SnakeSegments, SnakeTimer, spawn_snake, update_snake_timer};
 
 mod snake;
 mod food;
@@ -13,6 +13,7 @@ const ARENA_HEIGHT: u32 = 10;
 fn main() {
     App::new()
         .add_event::<GrowthEvent>()
+        .add_event::<GameOverEvent>()
         .insert_resource(FoodTimer::new())
         .insert_resource(SnakeTimer::new())
         .insert_resource(SnakeSegments::default())
@@ -27,10 +28,14 @@ fn main() {
         .add_systems(Update, snake_eating.after(snake_movement))
         .add_systems(Update, snake_movement_input.before(snake_movement))
         .add_systems(Update, snake_growth.after(snake_eating))
+        .add_systems(Update, game_over.after(snake_movement))
         .add_systems(PostUpdate, (position_translation, size_scaling))
         .add_plugins(DefaultPlugins)
         .run();
 }
+
+#[derive(PartialEq, Copy, Clone, Debug, Event)]
+struct GameOverEvent;
 
 fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
@@ -88,4 +93,19 @@ fn position_translation(window_query: Query<&Window, With<PrimaryWindow>>, mut q
 fn initialize_window(mut window: Single<&mut Window>) {
     window.title = "snake".to_string();
     window.resolution.set_physical_resolution(500, 500);
+}
+
+fn game_over(
+    mut commands: Commands,
+    mut reader: EventReader<GameOverEvent>,
+    segments_res: ResMut<SnakeSegments>,
+    food: Query<Entity, With<Food>>,
+    segments: Query<Entity, With<SnakeSegment>>,
+) {
+    if reader.read().next().is_some() {
+        for ent in food.iter().chain(segments.iter()) {
+            commands.entity(ent).despawn();
+        }
+        spawn_snake(commands, segments_res);
+    }
 }

@@ -4,7 +4,7 @@ use bevy::log::info;
 use bevy::math::Vec2;
 use bevy::prelude::{Commands, Component, Entity, Event, EventReader, EventWriter, KeyCode, Query, Res, ResMut, Resource, Sprite, Time, Timer, TimerMode, With};
 
-use crate::{Position, Size};
+use crate::{ARENA_HEIGHT, ARENA_WIDTH, GameOverEvent, Position, Size};
 use crate::food::Food;
 
 const SNAKE_HEAD_COLOR: Color = Color::srgb(0.7, 0.7, 0.7);
@@ -22,7 +22,7 @@ pub struct SnakeHead {
 pub struct LastTailPosition(Option<Position>);
 
 #[derive(Component)]
-struct SnakeSegment;
+pub struct SnakeSegment;
 
 #[derive(Default, Resource)]
 pub struct SnakeSegments(Vec<Entity>);
@@ -95,6 +95,7 @@ pub fn snake_movement_input(keyboard_input: Res<ButtonInput<KeyCode>>, mut heads
 
 pub fn snake_movement(
     segments: ResMut<SnakeSegments>,
+    mut game_over_writer: EventWriter<GameOverEvent>,
     mut heads: Query<(Entity, &SnakeHead)>,
     mut positions: Query<&mut Position>,
     mut last_tail_position: ResMut<LastTailPosition>,
@@ -121,6 +122,16 @@ pub fn snake_movement(
                 head_pos.y -= 1;
             }
         };
+        if head_pos.x < 0
+            || head_pos.y < 0
+            || head_pos.x as u32 >= ARENA_WIDTH
+            || head_pos.y as u32 >= ARENA_HEIGHT
+        {
+            game_over_writer.send(GameOverEvent);
+        }
+        if segment_positions.contains(&head_pos) {
+            game_over_writer.send(GameOverEvent);
+        }
         segment_positions
             .iter()
             .zip(segments.0.iter().skip(1))
