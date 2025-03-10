@@ -10,7 +10,7 @@ const FOOD_COLOR: Color = Color::srgb(1.0, 0.0, 1.0);
 #[derive(Component)]
 pub struct Food;
 
-pub fn food_spawner(mut commands: Commands) {
+pub fn spawn_food(mut commands: Commands) {
     commands
         .spawn(
             Sprite::from_color(FOOD_COLOR, Vec2::new(1.0, 1.0)),

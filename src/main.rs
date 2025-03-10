@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
-use crate::food::{Food, food_spawner, FoodTimer, should_spawn_food, update_food_timer};
+use crate::food::{Food, spawn_food, FoodTimer, should_spawn_food, update_food_timer};
 use crate::snake::{GrowthEvent, LastTailPosition, should_move_snake, snake_eating, snake_growth, snake_movement, snake_movement_input, SnakeSegment, SnakeSegments, SnakeTimer, spawn_snake, update_snake_timer};
 
 mod snake;
@@ -24,7 +24,8 @@ fn main() {
         .add_systems(PreStartup, initialize_window)
         .add_systems(Startup, setup_camera)
         .add_systems(Startup, spawn_snake)
-        .add_systems(Update, food_spawner.run_if(should_spawn_food))
+        .add_systems(Startup, spawn_food)
+        .add_systems(Update, spawn_food.run_if(should_spawn_food))
         .add_systems(Update, snake_eating.after(snake_movement))
         .add_systems(Update, snake_movement_input.before(snake_movement))
         .add_systems(Update, snake_growth.after(snake_eating))
