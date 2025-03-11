@@ -31,7 +31,7 @@ impl Plugin for SnakePlugin {
 #[derive(Resource)]
 pub struct SnakeTimer(Timer);
 
-#[derive(Component)]
+#[derive(Debug, Component)]
 pub struct SnakeHead {
     direction: Direction,
 }
@@ -42,8 +42,14 @@ pub struct LastTailPosition(Option<Position>);
 #[derive(Component)]
 pub struct SnakeSegment;
 
-#[derive(Default, Resource)]
+#[derive(Default, Debug, Resource)]
 pub struct SnakeSegments(Vec<Entity>);
+
+impl SnakeSegments {
+    pub fn segments(&self) -> Vec<Entity> {
+        self.0.clone()
+    }
+}
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 enum Direction {

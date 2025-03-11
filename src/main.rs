@@ -30,7 +30,7 @@ fn setup_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
 }
 
-#[derive(Component, Clone, Copy, PartialEq, Eq)]
+#[derive(Component, Debug, Hash, Clone, Copy, PartialEq, Eq)]
 struct Position {
     x: i32,
     y: i32,
